@@ -36,26 +36,65 @@ const Home = () => {
     };
 
     /**
+     * Validation logic for the form fields
+     */
+    const validateForm = () => {
+        // 1. Shop Name validation
+        if (shopName.trim().length < 3) {
+            alert("Shop Name must be at least 3 characters long.");
+            return false;
+        }
+
+        // 2. Phone Number validation (Generic 10-12 digits)
+        const phoneRegex = /^[0-9]{10,12}$/;
+        if (!phoneRegex.test(phone)) {
+            alert("Please enter a valid Phone Number (10-12 digits, no spaces or characters).");
+            return false;
+        }
+
+        // 3. UPI ID validation (simple regex: username@provider)
+        const upiRegex = /^[\w.-]+@[\w.-]+$/;
+        if (!upiRegex.test(upi)) {
+            alert("Please enter a valid UPI ID (e.g. username@upi).");
+            return false;
+        }
+
+        // 4. Products validation (At least one product with name and price)
+        const validProducts = products.filter(p => p.name.trim() !== '' && p.price.trim() !== '');
+        if (validProducts.length === 0) {
+            alert("Please add at least one product with a name and price.");
+            return false;
+        }
+
+        // 5. Price validation (Must be numeric)
+        for (let p of validProducts) {
+            if (isNaN(p.price)) {
+                alert(`Invalid price for "${p.name}". Please enter numbers only.`);
+                return false;
+            }
+        }
+
+        return validProducts;
+    };
+
+    /**
      * Submit logic to write data to Firestore
      */
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!shopName || !phone || !upi) {
-            alert("Please fill in Shop Name, Phone, and UPI ID.");
-            return;
-        }
+
+        // Run all validations
+        const validatedProducts = validateForm();
+        if (!validatedProducts) return;
 
         setLoading(true);
         try {
-            // Filter out empty products
-            const validProducts = products.filter(p => p.name.trim() !== '' && p.price.trim() !== '');
-
             const storeData = {
-                shopName,
-                description,
-                phone,
-                upi,
-                products: validProducts,
+                shopName: shopName.trim(),
+                description: description.trim(),
+                phone: phone.trim(),
+                upi: upi.trim(),
+                products: validatedProducts,
                 createdAt: serverTimestamp(),
             };
 
