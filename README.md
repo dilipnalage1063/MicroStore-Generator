@@ -1,5 +1,7 @@
 # 🚀 MicroStore Generator
 
+[**Live Demo**](https://micro-store-generator.vercel.app/)
+
 **MicroStore Generator** is a sleek, production-ready web application designed for micro-business owners to create and share their online store pages instantly. Built with a premium **Dark Theme** and powered by **React** and **Firebase**.
 
 ## ✨ Features
