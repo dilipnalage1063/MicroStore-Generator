@@ -7,13 +7,13 @@ import { getFirestore } from "firebase/firestore";
  * You can find these in the Firebase Console: Project Settings > General > Your apps.
  */
 const firebaseConfig = {
-  apiKey: "AIzaSyAd62-PMKlml1rDNiT79NVJAYLHJmgEcbs",
-  authDomain: "microstore-generator.firebaseapp.com",
-  projectId: "microstore-generator",
-  storageBucket: "microstore-generator.firebasestorage.app",
-  messagingSenderId: "625048784862",
-  appId: "1:625048784862:web:91b1ff4901b6be51a9574f",
-  measurementId: "G-T9N72NWTC9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase app
