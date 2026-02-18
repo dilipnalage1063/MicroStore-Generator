@@ -7,9 +7,19 @@ import { useNavigate } from 'react-router-dom';
  * Home Component
  * Provides a form to create a new micro-store.
  */
+import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+
+/**
+ * Home Component
+ * Provides a form to create a new micro-store.
+ */
 const Home = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [successData, setSuccessData] = useState(null); // To store created store info
 
     // Local state for form fields
     const [shopName, setShopName] = useState('');
@@ -20,6 +30,26 @@ const Home = () => {
         { name: '', price: '' },
         { name: '', price: '' }
     ]);
+
+    // Load saved details on mount
+    useEffect(() => {
+        const savedPhone = localStorage.getItem('ms_phone');
+        const savedUpi = localStorage.getItem('ms_upi');
+        if (savedPhone) setPhone(savedPhone);
+        if (savedUpi) setUpi(savedUpi);
+    }, []);
+
+    // Helper: Slugify shop name
+    const generateSlug = (text) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')     // Replace spaces with -
+            .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+            .replace(/--+/g, '-')     // Replace multiple - with single -
+            + '-' + Math.floor(1000 + Math.random() * 9000); // Add random suffix for uniqueness
+    };
 
     // Handle product input changes
     const handleProductChange = (index, field, value) => {
@@ -39,39 +69,27 @@ const Home = () => {
      * Validation logic for the form fields
      */
     const validateForm = () => {
-        // 1. Shop Name validation
         if (shopName.trim().length < 3) {
             alert("Shop Name must be at least 3 characters long.");
             return false;
         }
 
-        // 2. Phone Number validation (Generic 10-12 digits)
         const phoneRegex = /^[0-9]{10,12}$/;
         if (!phoneRegex.test(phone)) {
-            alert("Please enter a valid Phone Number (10-12 digits, no spaces or characters).");
+            alert("Please enter a valid Phone Number (10-12 digits).");
             return false;
         }
 
-        // 3. UPI ID validation (simple regex: username@provider)
         const upiRegex = /^[\w.-]+@[\w.-]+$/;
         if (!upiRegex.test(upi)) {
             alert("Please enter a valid UPI ID (e.g. username@upi).");
             return false;
         }
 
-        // 4. Products validation (At least one product with name and price)
         const validProducts = products.filter(p => p.name.trim() !== '' && p.price.trim() !== '');
         if (validProducts.length === 0) {
-            alert("Please add at least one product with a name and price.");
+            alert("Please add at least one product.");
             return false;
-        }
-
-        // 5. Price validation (Must be numeric)
-        for (let p of validProducts) {
-            if (isNaN(p.price)) {
-                alert(`Invalid price for "${p.name}". Please enter numbers only.`);
-                return false;
-            }
         }
 
         return validProducts;
@@ -83,12 +101,12 @@ const Home = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Run all validations
         const validatedProducts = validateForm();
         if (!validatedProducts) return;
 
         setLoading(true);
         try {
+            const slug = generateSlug(shopName);
             const storeData = {
                 shopName: shopName.trim(),
                 description: description.trim(),
@@ -98,17 +116,76 @@ const Home = () => {
                 createdAt: serverTimestamp(),
             };
 
-            // Add document to 'stores' collection
-            const docRef = await addDoc(collection(db, 'stores'), storeData);
+            // Use setDoc with a custom slug as ID
+            await setDoc(doc(db, 'stores', slug), storeData);
 
-            // Redirect to the public store page
-            navigate(`/store/${docRef.id}`);
+            // Save details for next time
+            localStorage.setItem('ms_phone', phone.trim());
+            localStorage.setItem('ms_upi', upi.trim());
+
+            // Set success state instead of navigating immediately
+            const storeUrl = `${window.location.origin}/store/${slug}`;
+            setSuccessData({ slug, url: storeUrl });
+
+            // Scroll to top to see success message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
+            console.error(error);
             alert("Failed to create store. Please try again.");
         } finally {
             setLoading(false);
         }
     };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(successData.url);
+        alert("Store link copied to clipboard!");
+    };
+
+    const shareOnWhatsApp = () => {
+        const message = `Check out my online store: ${successData.url}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
+    if (successData) {
+        return (
+            <div className="container">
+                <div className="store-header">
+                    <h1 style={{ color: '#10b981' }}>🎉 Store Created!</h1>
+                    <p>Your store is live and ready to share.</p>
+                </div>
+
+                <div className="card success-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <h2 style={{ marginBottom: '0.5rem' }}>{shopName}</h2>
+                    <div className="url-box" style={{
+                        background: '#f8fafc',
+                        padding: '1rem',
+                        borderRadius: '0.5rem',
+                        wordBreak: 'break-all',
+                        border: '1px solid #e2e8f0',
+                        margin: '1.5rem 0'
+                    }}>
+                        {successData.url}
+                    </div>
+
+                    <div className="action-buttons" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <button onClick={copyToClipboard} className="btn-primary">
+                            📋 Copy Store Link
+                        </button>
+                        <button onClick={shareOnWhatsApp} className="btn-whatsapp" style={{ backgroundColor: '#25D366', color: 'white' }}>
+                            💬 Share on WhatsApp
+                        </button>
+                        <button onClick={() => setSuccessData(null)} className="btn-outline">
+                            ➕ Create Another
+                        </button>
+                        <button onClick={() => navigate(`/store/${successData.slug}`)} className="btn-outline" style={{ border: 'none' }}>
+                            View Store Page →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container">
@@ -128,6 +205,11 @@ const Home = () => {
                             onChange={(e) => setShopName(e.target.value)}
                             required
                         />
+                        {shopName && (
+                            <small style={{ color: '#64748b' }}>
+                                Your link will be: {window.location.origin}/store/{generateSlug(shopName)}
+                            </small>
+                        )}
                     </div>
 
                     <div className="form-group">
@@ -188,7 +270,7 @@ const Home = () => {
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Creating Store...' : 'Create Instant Store'}
+                        {loading ? 'Creating Store...' : 'Create Instant Store & Link'}
                     </button>
                 </form>
             </div>
