@@ -62,27 +62,53 @@ const Home = () => {
      * Validation logic for the form fields
      */
     const validateForm = () => {
+        // 1. Shop Name: 3-50 chars
         if (shopName.trim().length < 3) {
             alert("Shop Name must be at least 3 characters long.");
             return false;
         }
+        if (shopName.trim().length > 50) {
+            alert("Shop Name must be under 50 characters.");
+            return false;
+        }
 
-        const phoneRegex = /^[0-9]{10,12}$/;
-        if (!phoneRegex.test(phone)) {
+        // 2. Description: Max 200 chars
+        if (description.trim().length > 200) {
+            alert("Description must be under 200 characters.");
+            return false;
+        }
+
+        // 3. Phone: Exactly 10 digits OR 12 digits (with 91)
+        const phoneRegex = /^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?)?[789]\d{9}$/;
+        // Simple fallback if they just want 10-12 digits without complex formatting
+        const basicPhoneRegex = /^[0-9]{10,12}$/;
+
+        if (!basicPhoneRegex.test(phone)) {
             alert("Please enter a valid Phone Number (10-12 digits).");
             return false;
         }
 
+        // 4. UPI ID
         const upiRegex = /^[\w.-]+@[\w.-]+$/;
         if (!upiRegex.test(upi)) {
             alert("Please enter a valid UPI ID (e.g. username@upi).");
             return false;
         }
 
+        // 5. Products check
         const validProducts = products.filter(p => p.name.trim() !== '' && p.price.trim() !== '');
         if (validProducts.length === 0) {
-            alert("Please add at least one product.");
+            alert("Please add at least one product with name and price.");
             return false;
+        }
+
+        // 6. Price: Must be positive number
+        for (let p of validProducts) {
+            const numPrice = parseFloat(p.price);
+            if (isNaN(numPrice) || numPrice <= 0) {
+                alert(`Invalid price for "${p.name}". Please enter a positive number.`);
+                return false;
+            }
         }
 
         return validProducts;
