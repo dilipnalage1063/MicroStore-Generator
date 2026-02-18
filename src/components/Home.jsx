@@ -104,8 +104,7 @@ const Home = () => {
             // Redirect to the public store page
             navigate(`/store/${docRef.id}`);
         } catch (error) {
-            console.error("Error creating store:", error);
-            alert("Failed to create store. Check console for details.");
+            alert("Failed to create store. Please try again.");
         } finally {
             setLoading(false);
         }

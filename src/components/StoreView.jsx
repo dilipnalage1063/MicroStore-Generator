@@ -22,10 +22,10 @@ const StoreView = () => {
                 if (docSnap.exists()) {
                     setStore(docSnap.data());
                 } else {
-                    console.log("No such store!");
+                    // Store not found
                 }
             } catch (error) {
-                console.error("Error fetching store:", error);
+                // Error handled by not setting store
             } finally {
                 setLoading(false);
             }
