@@ -11,6 +11,7 @@ const Home = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [successData, setSuccessData] = useState(null); // To store created store info
+    const [slugSuffix] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
 
     // Local state for form fields
     const [shopName, setShopName] = useState('');
@@ -31,15 +32,16 @@ const Home = () => {
     }, []);
 
     // Helper: Slugify shop name
-    const generateSlug = (text) => {
-        return text
+    const generateSlug = (text, suffix = '') => {
+        const base = text
             .toString()
             .toLowerCase()
             .trim()
             .replace(/\s+/g, '-')     // Replace spaces with -
             .replace(/[^\w-]+/g, '')  // Remove all non-word chars
-            .replace(/--+/g, '-')     // Replace multiple - with single -
-            + '-' + Math.floor(1000 + Math.random() * 9000); // Add random suffix for uniqueness
+            .replace(/--+/g, '-');    // Replace multiple - with single -
+
+        return suffix ? `${base}-${suffix}` : base;
     };
 
     // Handle product input changes
@@ -97,7 +99,7 @@ const Home = () => {
 
         setLoading(true);
         try {
-            const slug = generateSlug(shopName);
+            const slug = generateSlug(shopName, slugSuffix);
             const storeData = {
                 shopName: shopName.trim(),
                 description: description.trim(),
@@ -198,7 +200,7 @@ const Home = () => {
                         />
                         {shopName && (
                             <small style={{ color: '#64748b' }}>
-                                Your link will be: {window.location.origin}/store/{generateSlug(shopName)}
+                                Your link will be: {window.location.origin}/store/{generateSlug(shopName, slugSuffix)}
                             </small>
                         )}
                     </div>
