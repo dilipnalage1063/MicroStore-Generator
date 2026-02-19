@@ -93,14 +93,6 @@ npm run dev
 
 ---
 
-## 📸 Screenshots
-
-| Landing Page | Store Form | Product View |
-| :---: | :---: | :---: |
-| ![Landing Page](https://via.placeholder.com/300x200?text=Landing+Page) | ![Store Form](https://via.placeholder.com/300x200?text=Store+Form) | ![Product View](https://via.placeholder.com/300x200?text=Product+View) |
-
----
-
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
