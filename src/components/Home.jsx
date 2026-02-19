@@ -23,12 +23,9 @@ const Home = () => {
         { name: '', price: '' }
     ]);
 
-    // Load saved details on mount
+    // Load saved details on mount - Removed persistence as per user request
     useEffect(() => {
-        const savedPhone = localStorage.getItem('ms_phone');
-        const savedUpi = localStorage.getItem('ms_upi');
-        if (savedPhone) setPhone(savedPhone);
-        if (savedUpi) setUpi(savedUpi);
+        // Form now starts empty for every new session
     }, []);
 
     // Helper: Slugify shop name
@@ -78,17 +75,15 @@ const Home = () => {
             return false;
         }
 
-        // 3. Phone: Exactly 10 digits OR 12 digits (with 91)
-        const phoneRegex = /^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?)?[789]\d{9}$/;
-        // Simple fallback if they just want 10-12 digits without complex formatting
-        const basicPhoneRegex = /^[0-9]{10,12}$/;
+        // 3. Phone: Exactly 10 digits (Standard Indian format for MicroStore)
+        const phoneRegex = /^[6789]\d{9}$/;
 
-        if (!basicPhoneRegex.test(phone)) {
-            alert("Please enter a valid Phone Number (10-12 digits).");
+        if (!phoneRegex.test(phone)) {
+            alert("Please enter a valid 10-digit Phone Number.");
             return false;
         }
 
-        // 4. UPI ID
+        // 4. UPI ID: username@bankname
         const upiRegex = /^[\w.-]+@[\w.-]+$/;
         if (!upiRegex.test(upi)) {
             alert("Please enter a valid UPI ID (e.g. username@upi).");
@@ -137,10 +132,6 @@ const Home = () => {
 
             // Use setDoc with a custom slug as ID
             await setDoc(doc(db, 'stores', slug), storeData);
-
-            // Save details for next time
-            localStorage.setItem('ms_phone', phone.trim());
-            localStorage.setItem('ms_upi', upi.trim());
 
             // Set success state instead of navigating immediately
             const storeUrl = `${window.location.origin}/store/${slug}`;
